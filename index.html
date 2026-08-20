@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="nl" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Compressor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- JSZip & PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-name">PDF Compressor</span>
+        </div>
+
+        <button id="themeToggle" class="theme-btn" title="Schakel thema">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+    </header>
+
+    <div class="app-container">
+        
+        <!-- STAP 1: Uploadzone -->
+        <section id="uploadScreen" class="upload-section">
+            <div class="hero-content">
+                <h1>Comprimeer PDF bestanden</h1>
+                <p>Verklein de bestandsgrootte van je documenten in seconden.</p>
+
+                <div class="dropzone-card" id="dropZone">
+                    <div class="dropzone-inner">
+                        <div class="icon-bubble">📄</div>
+                        <h3>Sleep je PDF-bestanden hierheen</h3>
+                        <p class="subtext">of klik om te bladeren</p>
+                        <button class="btn-primary" id="selectBtn">Kies bestanden</button>
+                    </div>
+                    <input type="file" id="fileInput" multiple accept="application/pdf">
+                </div>
+            </div>
+        </section>
+
+        <!-- STAP 2: Dashboard Werkruimte -->
+        <section id="workspaceScreen" class="workspace-section" style="display: none;">
+            
+            <div class="files-column">
+                <div class="column-header">
+                    <h2>Bestanden (<span id="fileBadge">0</span>)</h2>
+                    <button class="btn-secondary" id="addMoreBtn">+ Toevoegen</button>
+                </div>
+
+                <div class="files-grid" id="filesGrid"></div>
+
+                <div id="resultsSummary" class="summary-box" style="display: none;">
+                    <div class="stat-card">
+                        <span class="stat-label">Origineel</span>
+                        <span class="stat-value" id="sumOrigSize">0 MB</span>
+                    </div>
+                    <div class="stat-arrow">→</div>
+                    <div class="stat-card">
+                        <span class="stat-label">Nieuw</span>
+                        <span class="stat-value" id="sumNewSize">0 MB</span>
+                    </div>
+                    <div class="stat-card highlight">
+                        <span class="stat-label">Besparing</span>
+                        <span class="stat-value" id="sumSavings">0%</span>
+                    </div>
+                </div>
+
+                <button id="zipBtn" class="btn-success" style="display: none;">
+                    📦 Download Alles als ZIP
+                </button>
+            </div>
+
+            <aside class="sidebar-column">
+                <div class="panel">
+                    <h3 class="panel-title">Compressie</h3>
+                    
+                    <div class="options-group">
+                        <label class="option-card" data-quality="/screen">
+                            <input type="radio" name="quality" value="/screen">
+                            <div class="option-text">
+                                <strong>Maximale compressie</strong>
+                                <span>Laagste bestandsgrootte</span>
+                            </div>
+                        </label>
+
+                        <label class="option-card active" data-quality="/ebook">
+                            <input type="radio" name="quality" value="/ebook" checked>
+                            <div class="option-text">
+                                <strong>Aanbevolen</strong>
+                                <span>Goede balans tussen kwaliteit en grootte</span>
+                            </div>
+                        </label>
+
+                        <label class="option-card" data-quality="/printer">
+                            <input type="radio" name="quality" value="/printer">
+                            <div class="option-text">
+                                <strong>Hoge kwaliteit</strong>
+                                <span>Minimale compressie</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3 class="panel-title">Opties</h3>
+                    
+                    <div class="field">
+                        <label for="maxTargetMB">Gewenste max. grootte (MB)</label>
+                        <input type="number" id="maxTargetMB" value="10" min="1" max="500">
+                    </div>
+
+                    <div class="field">
+                        <label for="unitSelect">Eenheid weergave</label>
+                        <select id="unitSelect">
+                            <option value="auto" selected>Automatisch (KB / MB)</option>
+                            <option value="KB">Altijd KB</option>
+                            <option value="MB">Altijd MB</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-action" id="uploadBtn">
+                    Start Compressie
+                </button>
+            </aside>
+
+        </section>
+
+    </div>
+
+    <script src="pdf-compressor.js"></script>
+<!-- Versie indicator rechtsonderin -->
+    <div class="version-label">v0.1.1</div>
+
+    <script src="pdf-compressor.js"></script>
+</body>
+</html>
