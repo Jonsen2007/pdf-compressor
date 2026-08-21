@@ -20,8 +20,10 @@ const unitSelect = document.getElementById('unitSelect');
 
 let selectedFiles = [];
 let processedFiles = [];
+let lastTotalOrig = 0;
+let lastTotalNew = 0;
 
-const savedTheme = localStorage.getItem('theme') || 'dark';
+const savedTheme = localStorage.getItem('theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 
 if (themeToggle) {
@@ -93,8 +95,31 @@ function formatBytes(bytes) {
 
 if (unitSelect) {
     unitSelect.addEventListener('change', () => {
-        if (selectedFiles.length > 0) renderWorkspace();
+        // BUGFIX: dit riep voorheen renderWorkspace() aan, wat de hele grid
+        // (incl. thumbnails, voortgang en downloadknoppen) opnieuw opbouwde
+        // en zo alle al gecomprimeerde resultaten wiste. Nu wordt alleen
+        // de weergegeven tekst bijgewerkt.
+        if (selectedFiles.length > 0) refreshSizeDisplays();
     });
+}
+
+function refreshSizeDisplays() {
+    selectedFiles.forEach((file, index) => {
+        const sizeText = document.getElementById(`size-text-${index}`);
+        if (!sizeText) return;
+
+        const processed = processedFiles[index];
+        if (processed && processed.name === file.name) {
+            sizeText.style.color = 'var(--text)';
+            sizeText.innerText = `${formatBytes(file.size)} → ${formatBytes(processed.blob.size)}`;
+        } else {
+            sizeText.innerText = formatBytes(file.size);
+        }
+    });
+
+    if (resultsSummary.style.display !== 'none' && processedFiles.length > 0) {
+        showSummary(lastTotalOrig, lastTotalNew);
+    }
 }
 
 async function generatePDFThumbnail(file, imgElement, placeholderElement) {
@@ -207,7 +232,11 @@ async function processFiles() {
 
             const blob = await response.blob();
             totalNew += blob.size;
-            processedFiles.push({ name: file.name, blob: blob });
+            // BUGFIX: bewaar op dezelfde index als selectedFiles i.p.v. altijd
+            // te pushen. Anders schuiven de resultaten op zodra één bestand
+            // mislukt, en komen latere downloads/groottes niet meer overeen
+            // met de juiste kaart.
+            processedFiles[i] = { name: file.name, blob: blob };
 
             if (progressFill) progressFill.style.width = '100%';
             if (sizeText) {
@@ -229,6 +258,8 @@ async function processFiles() {
     uploadBtn.disabled = false;
 
     if (processedFiles.length > 0) {
+        lastTotalOrig = totalOrig;
+        lastTotalNew = totalNew;
         showSummary(totalOrig, totalNew);
         if (zipBtn) zipBtn.style.display = 'block';
     }
@@ -269,7 +300,7 @@ if (zipBtn) {
         }
         const zip = new JSZip();
         processedFiles.forEach(item => {
-            zip.file(`gecomprimeerd_${item.name}`, item.blob);
+            if (item) zip.file(`gecomprimeerd_${item.name}`, item.blob);
         });
 
         const zipContent = await zip.generateAsync({ type: 'blob' });

@@ -118,7 +118,6 @@ body {
     border-radius: 12px;
     padding: 40px 20px;
     transition: border-color 0.2s ease;
-    margin-bottom: 300px;
 }
 
 .dropzone-card.dragover {
@@ -457,4 +456,135 @@ input[type="file"] { display: none; }
     z-index: 1000; /* Zorgt dat de badge altijd bovenop alle elementen blijft zweven */
     pointer-events: none; /* Klikken gaat er doorheen */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+/* ============================================
+   RESPONSIVE: TABLET & MOBILE
+   ============================================ */
+
+/* Tablet: laat de zijbalk (met o.a. "max. bestandsgrootte") onder de
+   bestandenlijst vallen i.p.v. een vaste 320px kolom, die op smallere
+   schermen de layout liet overlopen en de instellingen dichtkneep. */
+@media (max-width: 900px) {
+    body {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .app-container {
+        overflow: visible;
+    }
+
+    .workspace-section {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+
+    .files-column {
+        overflow-y: visible;
+        height: auto;
+        padding: 16px 20px 20px 20px;
+    }
+
+    .sidebar-column {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        border-radius: 0;
+    }
+
+    .files-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+/* Mobiel: de "Gewenste max. grootte (MB)" instelling en de rest van het
+   opties-paneel krijgen ruimere, makkelijker te raken velden, en het label
+   + input blijven leesbaar naast/boven elkaar op smalle schermen. */
+@media (max-width: 600px) {
+    .topbar {
+        padding: 0 16px;
+    }
+
+    .brand-name {
+        font-size: 0.95rem;
+    }
+
+    .hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .hero-content p {
+        font-size: 0.85rem;
+    }
+
+    .dropzone-card {
+        padding: 28px 16px;
+    }
+
+    .column-header h2 {
+        font-size: 1rem;
+    }
+
+    .files-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+    }
+
+    .file-item {
+        height: auto;
+        padding: 10px;
+    }
+
+    .file-preview-container {
+        height: 110px;
+    }
+
+    .sidebar-column {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    /* Het maxTargetMB-veld (en de andere instellingen) breder maken en
+       met groter lettertype/padding, zodat het op een telefoon prettig
+       te bedienen is i.p.v. te worden platgedrukt door de vaste sidebar. */
+    .field {
+        margin-bottom: 14px;
+    }
+
+    .field label {
+        font-size: 0.8rem;
+    }
+
+    .field input,
+    .field select {
+        width: 100%;
+        padding: 12px 10px;
+        font-size: 1rem; /* voorkomt auto-zoom in iOS Safari bij focus */
+    }
+
+    .option-card {
+        padding: 12px;
+    }
+
+    .summary-box {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .btn-action,
+    .btn-success {
+        padding: 14px;
+        font-size: 0.95rem;
+    }
+
+    .version-label {
+        bottom: 8px;
+        right: 8px;
+        font-size: 0.65rem;
+    }
 }
