@@ -26,10 +26,10 @@ QUALITY_ARGS = {
     ],
     "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=100",  # Verhoogd van 88 naar 110 voor betere scherpte
+        "-dColorImageResolution=92",  # Verhoogd van 88 naar 110 voor betere scherpte
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=100",
+        "-dGrayImageResolution=92",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=true", # Veranderd van false naar true voor slimme filterkeuze
         "-dJPEGQ=70",                  # Verhoogd van 60 naar 70 tegen JPEG-ruis
