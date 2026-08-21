@@ -13,41 +13,40 @@ CORS(app)
 GHOSTSCRIPT_CMD = "gs"
 
 QUALITY_ARGS = {
-"/screen": [
+    "/screen": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=72",  # Terug naar de veilige bodem van 72 DPI
+        "-dColorImageResolution=72",  
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
         "-dGrayImageResolution=72",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=35",                 # Net iets boven de zware artefact-grens
+        "-dJPEGQ=35", 
     ],
     "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=85", # Genoeg detail om grafieken te kunnen lezen
+        "-dColorImageResolution=88", 
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=85",
+        "-dGrayImageResolution=88",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=60",                 # Zorgt dat de tekst in plaatjes niet gaat 'bloeden'
+        "-dJPEGQ=60", 
     ],
     "/printer": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=250",
+        "-dColorImageResolution=250",  
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
         "-dGrayImageResolution=250",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=85",
+        "-dJPEGQ=80", 
     ],
 }
-
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
