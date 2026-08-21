@@ -120,9 +120,15 @@ def compress_single():
 
         max_target_bytes = max_target_mb * 1024 * 1024 if max_target_mb > 0 else None
 
-        # Begin bij de door de gebruiker gekozen kwaliteit, en val pas terug op
-        # zwaardere compressie als de gewenste max. grootte nog niet gehaald is.
-        attempt_order = [quality] + [q for q in QUALITY_LADDER if q != quality]
+        # PERFORMANCE: alleen escaleren naar sterkere compressie dan de
+        # gekozen kwaliteit, nooit terug naar een zwakkere. QUALITY_LADDER
+        # staat al van zwak naar sterk ("/printer" -> "/ebook" -> "/screen"),
+        # dus we slicen vanaf de gekozen kwaliteit. Voorheen kon bijv. bij
+        # "/ebook" eerst nog "/printer" geprobeerd worden - dat comprimeert
+        # juist minder dan "/ebook" en kan de doelgrootte dus nooit halen,
+        # wat bij grote PDF's een volledig verspilde Ghostscript-pas was.
+        start_idx = QUALITY_LADDER.index(quality) if quality in QUALITY_LADDER else 1
+        attempt_order = QUALITY_LADDER[start_idx:]
 
         best_path = None
         best_size = None
@@ -139,18 +145,26 @@ def compress_single():
             if best_size is None or size < best_size:
                 best_path, best_size = out_path, size
 
-            # Extra qpdf-pass bovenop het Ghostscript-resultaat. Dit kan
-            # falen (qpdf niet aanwezig, edge-case in het bestand) - dan
-            # gaan we gewoon door met het Ghostscript-resultaat hierboven.
-            qpdf_out_path = os.path.join(temp_dir, f"qpdf_{step}_{safe_name}")
-            try:
-                run_qpdf_optimize(out_path, qpdf_out_path)
-                qpdf_size = os.path.getsize(qpdf_out_path)
-                if qpdf_size < best_size:
-                    best_path, best_size = qpdf_out_path, qpdf_size
-                    size = qpdf_size
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
-                print(f"qpdf optimalisatie overgeslagen: {e}")
+            meets_target = max_target_bytes is None or size <= max_target_bytes
+            is_last_attempt = step == len(attempt_order) - 1
+
+            # PERFORMANCE: de qpdf-nabewerking is een aparte, trage pas.
+            # Die draaien we alleen op een resultaat dat we ook echt gaan
+            # gebruiken: óf het haalt nu al de doelgrootte, óf het is de
+            # laatste (sterkste) poging in de ladder. Tussenliggende
+            # pogingen die toch worden weggegooid omdat we verder gaan
+            # escaleren, slaan we over - dat scheelde bij grote PDF's tot
+            # wel 2 extra qpdf-passes per bestand.
+            if meets_target or is_last_attempt:
+                qpdf_out_path = os.path.join(temp_dir, f"qpdf_{step}_{safe_name}")
+                try:
+                    run_qpdf_optimize(out_path, qpdf_out_path)
+                    qpdf_size = os.path.getsize(qpdf_out_path)
+                    if qpdf_size < best_size:
+                        best_path, best_size = qpdf_out_path, qpdf_size
+                        size = qpdf_size
+                except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+                    print(f"qpdf optimalisatie overgeslagen: {e}")
 
             # Stop zodra we onder de gewenste max. grootte zitten, of als er
             # geen max. grootte is ingesteld (dan is de eerste poging genoeg).
