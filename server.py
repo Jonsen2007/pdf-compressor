@@ -22,31 +22,31 @@ QUALITY_ARGS = {
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=35", 
+        "-dJPEGQ=35",
     ],
     "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=94", 
-        "-dColorImageDownsampleType=/Bicubic",
-        "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=94",
-        "-dGrayImageDownsampleType=/Bicubic",
-        "-dAutoFilterColorImages=false",
-        "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=60", 
-    ],
-    "/printer": [
-        "-dDownsampleColorImages=true",
-        "-dColorImageResolution=110",  
+        "-dColorImageResolution=110",  # Verhoogd van 88 naar 110 voor betere scherpte
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
         "-dGrayImageResolution=110",
         "-dGrayImageDownsampleType=/Bicubic",
+        "-dAutoFilterColorImages=true", # Veranderd van false naar true voor slimme filterkeuze
+        "-dJPEGQ=70",                  # Verhoogd van 60 naar 70 tegen JPEG-ruis
+    ],
+    "/printer": [
+        "-dDownsampleColorImages=true",
+        "-dColorImageResolution=250",  
+        "-dColorImageDownsampleType=/Bicubic",
+        "-dDownsampleGrayImages=true",
+        "-dGrayImageResolution=250",
+        "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=80", 
+        "-dJPEGQ=80",
     ],
 }
+
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
