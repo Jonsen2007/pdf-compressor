@@ -71,6 +71,8 @@ const translations = {
         invalidPdfSingle: 'is geen geldig PDF-bestand en is overgeslagen.',
         invalidPdfMultiple: 'zijn geen geldige PDF-bestanden en zijn overgeslagen.',
         noValidFiles: 'Geen van de geselecteerde bestanden is een geldig PDF-bestand.',
+        skippedCountSingular: 'bestand overgeslagen (geen PDF)',
+        skippedCountPlural: 'bestanden overgeslagen (geen PDF)',
     },
     en: {
         homeTitle: 'Back to home',
@@ -111,6 +113,8 @@ const translations = {
         invalidPdfSingle: 'is not a valid PDF file and was skipped.',
         invalidPdfMultiple: 'are not valid PDF files and were skipped.',
         noValidFiles: 'None of the selected files is a valid PDF file.',
+        skippedCountSingular: 'file skipped (not a PDF)',
+        skippedCountPlural: 'files skipped (not a PDF)',
     }
 };
 
@@ -238,9 +242,8 @@ function handleFiles(files) {
     const invalidFiles = files.filter(f => !f.name.toLowerCase().endsWith('.pdf'));
 
     if (invalidFiles.length) {
-        const names = invalidFiles.map(f => f.name).join(', ');
-        const reason = invalidFiles.length === 1 ? t('invalidPdfSingle') : t('invalidPdfMultiple');
-        showToast(`${names} ${reason}`);
+        const countLabel = invalidFiles.length === 1 ? t('skippedCountSingular') : t('skippedCountPlural');
+        showToast(`${invalidFiles.length} ${countLabel}`);
     }
 
     if (!validPdfs.length) {
