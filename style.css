@@ -60,6 +60,55 @@ body {
     letter-spacing: -0.3px;
 }
 
+/* De merknaam linksboven is nu ook een home-knop */
+.brand {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    outline-offset: 4px;
+}
+
+.brand:hover .brand-name,
+.brand:focus-visible .brand-name {
+    color: var(--primary);
+}
+
+#langLabel {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+/* Melding-toast (bijv. "geen geldig PDF-bestand") */
+.toast {
+    position: fixed;
+    top: 76px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-12px);
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--danger);
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    max-width: 90vw;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
 .theme-btn {
     background: transparent;
     border: none;
