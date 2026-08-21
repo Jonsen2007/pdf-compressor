@@ -13,27 +13,27 @@ CORS(app)
 GHOSTSCRIPT_CMD = "gs"
 
 QUALITY_ARGS = {
-    "/screen": [
+"/screen": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=72",
+        "-dColorImageResolution=50",  
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=72",
+        "-dGrayImageResolution=50",   
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=40",
+        "-dJPEGQ=25", 
     ],
 "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=96",  
+        "-dColorImageResolution=85",  
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=96",   
+        "-dGrayImageResolution=85",   
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=50", 
+        "-dJPEGQ=45", 
     ],
     "/printer": [
         "-dDownsampleColorImages=true",
