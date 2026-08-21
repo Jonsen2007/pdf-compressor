@@ -66,8 +66,6 @@ if (langToggle) {
     });
 }
 
-applyLanguage(currentLang);
-
 const savedTheme = localStorage.getItem('theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 
@@ -195,6 +193,10 @@ function applyLanguage(lang) {
         refreshSizeDisplays();
     }
 }
+
+// Nu alle vertalingen, currentLang en de functie zelf gedefinieerd zijn:
+// pas de taal meteen toe zodat de pagina in de juiste taal opent.
+applyLanguage(currentLang);
 
 const toastContainer = document.getElementById('toastContainer');
 
