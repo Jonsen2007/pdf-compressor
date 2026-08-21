@@ -26,14 +26,14 @@ QUALITY_ARGS = {
     ],
 "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=120",  
+        "-dColorImageResolution=96",  
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=120",   
+        "-dGrayImageResolution=96",   
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=65", 
+        "-dJPEGQ=50", 
     ],
     "/printer": [
         "-dDownsampleColorImages=true",
