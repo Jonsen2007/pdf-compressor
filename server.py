@@ -12,47 +12,111 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__, static_url_path='', static_folder='.')
 CORS(app)
 
-# Preset configuraties voor slimme beeldbewerking
+# Preset configuraties: target_dpi bepaalt de resolutie t.o.v. de ECHTE
+# weergavegrootte op de pagina (niet t.o.v. de ruwe pixelafmeting van het
+# bronbestand). max_dim is alleen een fallback voor het zeldzame geval dat
+# we de plaatsing van een afbeelding niet kunnen bepalen.
 PRESETS = {
-    "/screen":  {"max_dim": 800,  "quality": 45},
-    "/ebook":   {"max_dim": 1100, "quality": 60},  # iLovePDF balans: klein én scherpe tekst
-    "/printer": {"max_dim": 1600, "quality": 80},
+    "/screen":  {"target_dpi": 96,  "max_dim": 900,  "quality": 45},
+    "/ebook":   {"target_dpi": 150, "max_dim": 1400, "quality": 65},  # goede balans
+    "/printer": {"target_dpi": 220, "max_dim": 2000, "quality": 82},
 }
 
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
 
+def _target_pixels_for_image(page, xref, target_dpi, fallback_max_dim):
+    """Bepaalt de gewenste pixelafmeting van een afbeelding op basis van de
+    werkelijke grootte waarop hij op de pagina wordt weergegeven (in inches),
+    zodat we nooit hoger comprimeren dan wat het oog op de pagina kan zien."""
+    try:
+        rects = page.get_image_rects(xref)
+    except Exception:
+        rects = []
+
+    if rects:
+        # Als dezelfde afbeelding meerdere keren voorkomt, houd rekening
+        # met de grootste weergave zodat we die niet te grof maken.
+        widest = max(rects, key=lambda r: r.width * r.height)
+        display_w_in = widest.width / 72.0
+        display_h_in = widest.height / 72.0
+        if display_w_in > 0 and display_h_in > 0:
+            target_w = max(50, round(display_w_in * target_dpi))
+            target_h = max(50, round(display_h_in * target_dpi))
+            return target_w, target_h
+
+    return fallback_max_dim, fallback_max_dim
+
 def compress_pdf_smart(in_path, out_path, quality_preset):
-    """Haalt afbeeldingen uit de PDF, verkleint ze slim en plaatst ze haarscherp terug."""
+    """Haalt afbeeldingen uit de PDF, verkleint ze op basis van hun werkelijke
+    weergavegrootte (DPI-gebaseerd, net als professionele PDF-compressors) en
+    subset lettertypes zodat ook tekst-PDF's zonder veel afbeeldingen kleiner
+    worden."""
     params = PRESETS.get(quality_preset, PRESETS["/ebook"])
+    target_dpi = params["target_dpi"]
+    fallback_max_dim = params["max_dim"]
+    jpg_quality = params["quality"]
+
     doc = fitz.open(in_path)
+    processed_xrefs = set()
 
     for page in doc:
         image_list = page.get_images(full=True)
         for img_info in image_list:
             xref = img_info[0]
+            if xref in processed_xrefs:
+                continue
+            processed_xrefs.add(xref)
+
             try:
                 base_image = doc.extract_image(xref)
                 image_bytes = base_image["image"]
                 img = Image.open(io.BytesIO(image_bytes))
+                native_w, native_h = img.size
 
-                # Alleen schalen als het plaatje groter is dan max_dim
-                if max(img.size) > params["max_dim"]:
-                    img.thumbnail((params["max_dim"], params["max_dim"]), Image.Resampling.LANCZOS)
+                target_w, target_h = _target_pixels_for_image(
+                    page, xref, target_dpi, fallback_max_dim
+                )
 
-                if img.mode in ("RGBA", "P"):
+                # Alleen schalen als de afbeelding groter is dan nodig voor
+                # de weergave op de pagina.
+                if native_w > target_w or native_h > target_h:
+                    img.thumbnail((target_w, target_h), Image.Resampling.LANCZOS)
+
+                if img.mode in ("RGBA", "P", "LA"):
                     img = img.convert("RGB")
 
                 out_buffer = io.BytesIO()
                 # optimize=True gebruikt slimme compressie waardoor letters op foto's strak blijven
-                img.save(out_buffer, format="JPEG", quality=params["quality"], optimize=True)
-                page.replace_image(xref, stream=out_buffer.getvalue())
+                img.save(out_buffer, format="JPEG", quality=jpg_quality, optimize=True)
+                new_bytes = out_buffer.getvalue()
+
+                # Alleen vervangen als het ook echt kleiner is geworden,
+                # anders behouden we liever de originele kwaliteit.
+                if len(new_bytes) < len(image_bytes):
+                    page.replace_image(xref, stream=new_bytes)
             except Exception as e:
                 print(f"Afbeelding overgeslagen wegens fout: {e}")
 
+    # Subset embedded lettertypes: bewaar alleen de glyphs die daadwerkelijk
+    # gebruikt worden. Dit helpt vooral bij tekst-PDF's (facturen, Word-
+    # exports, etc.) die weinig of geen afbeeldingen bevatten en waar de
+    # oude aanpak dus 0% besparing gaf.
+    try:
+        doc.subset_fonts(fallback=True)
+    except Exception as e:
+        print(f"Font subsetting overgeslagen: {e}")
+
     # Sla PDF op met maximale interne opschoning
-    doc.save(out_path, garbage=4, deflate=True, clean=True)
+    doc.save(
+        out_path,
+        garbage=4,
+        deflate=True,
+        deflate_images=True,
+        deflate_fonts=True,
+        clean=True,
+    )
     doc.close()
 
 def run_qpdf_optimize(in_path, out_path):
