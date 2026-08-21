@@ -26,13 +26,13 @@ QUALITY_ARGS = {
     ],
     "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=100",  # Verhoogd van 88 naar 110 voor betere scherpte
+        "-dColorImageResolution=82",   # Aangepast naar 82 DPI voor ~48% besparing
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=100",
+        "-dGrayImageResolution=82",
         "-dGrayImageDownsampleType=/Bicubic",
-        "-dAutoFilterColorImages=true", # Veranderd van false naar true voor slimme filterkeuze
-        "-dJPEGQ=70",                  # Verhoogd van 60 naar 70 tegen JPEG-ruis
+        "-dAutoFilterColorImages=true", # Houdt grafieken en tekst netjes
+        "-dJPEGQ=52",                   # Aangepast naar 52 om de 48% te halen
     ],
     "/printer": [
         "-dDownsampleColorImages=true",
