@@ -52,7 +52,8 @@
                 <div class="dropzone-card" id="dropZone">
                     <div class="dropzone-inner">
                         <div class="icon-bubble">📄</div>
-                        <h3 data-i18n="dropTitle">Sleep je PDF-bestanden hierheen</h3>
+                        <!-- Changed h3 to h2 to satisfy heading hierarchy -->
+                        <h2 data-i18n="dropTitle">Sleep je PDF-bestanden hierheen</h2>
                         <p class="subtext" data-i18n="dropSubtitle">of klik om te bladeren</p>
                         <button class="btn-primary" id="selectBtn" data-i18n="chooseFilesBtn">Kies bestanden</button>
                     </div>
@@ -100,26 +101,29 @@
                     <div class="options-group">
                         <label class="option-card" data-quality="/screen">
                             <input type="radio" name="quality" value="/screen">
-                            <div class="option-text">
+                            <!-- Changed div to span for valid phrasing content inside label -->
+                            <span class="option-text">
                                 <strong data-i18n="qMaxTitle">Maximale compressie</strong>
                                 <span data-i18n="qMaxDesc">Laagste bestandsgrootte</span>
-                            </div>
+                            </span>
                         </label>
 
                         <label class="option-card active" data-quality="/ebook">
                             <input type="radio" name="quality" value="/ebook" checked>
-                            <div class="option-text">
+                            <!-- Changed div to span for valid phrasing content inside label -->
+                            <span class="option-text">
                                 <strong data-i18n="qRecTitle">Aanbevolen</strong>
                                 <span data-i18n="qRecDesc">Goede balans tussen kwaliteit en grootte</span>
-                            </div>
+                            </span>
                         </label>
 
                         <label class="option-card" data-quality="/printer">
                             <input type="radio" name="quality" value="/printer">
-                            <div class="option-text">
+                            <!-- Changed div to span for valid phrasing content inside label -->
+                            <span class="option-text">
                                 <strong data-i18n="qHighTitle">Hoge kwaliteit</strong>
                                 <span data-i18n="qHighDesc">Minimale compressie</span>
-                            </div>
+                            </span>
                         </label>
                     </div>
                 </div>
