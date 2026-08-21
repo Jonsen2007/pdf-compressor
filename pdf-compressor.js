@@ -203,13 +203,16 @@ async function processFiles() {
     let totalOrig = 0;
     let totalNew = 0;
 
-    for (let i = 0; i < selectedFiles.length; i++) {
+    // Comprimeer één bestand; wordt hieronder met een concurrency-limiet
+    // aangeroepen zodat bestanden niet meer op elkaar hoeven te wachten
+    // (voorheen: sequentiële for-loop met await per bestand).
+    async function compressOne(i) {
         const file = selectedFiles[i];
         totalOrig += file.size;
 
         const progressFill = document.getElementById(`progress-${i}`);
         const sizeText = document.getElementById(`size-text-${i}`);
-        
+
         if (sizeText) {
             sizeText.style.color = 'var(--text)';
             sizeText.innerText = 'Comprimeren...';
@@ -254,6 +257,27 @@ async function processFiles() {
             if (progressFill) progressFill.style.width = '0%';
         }
     }
+
+    // Max. aantal gelijktijdige uploads. Hoger dan 1 (voorheen effectief de
+    // situatie door de sequentiële loop), maar begrensd zodat de server
+    // (en de eigen internetverbinding van de gebruiker) niet overspoeld
+    // wordt bij bijv. 20 bestanden tegelijk.
+    const CONCURRENCY_LIMIT = 3;
+    let nextIndex = 0;
+
+    async function worker() {
+        while (nextIndex < selectedFiles.length) {
+            const i = nextIndex;
+            nextIndex += 1;
+            await compressOne(i);
+        }
+    }
+
+    const workers = Array.from(
+        { length: Math.min(CONCURRENCY_LIMIT, selectedFiles.length) },
+        () => worker()
+    );
+    await Promise.all(workers);
 
     uploadBtn.disabled = false;
 

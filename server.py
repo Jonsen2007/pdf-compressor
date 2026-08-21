@@ -60,10 +60,33 @@ def run_ghostscript(quality, in_path, out_path):
         "-dNOPAUSE",
         "-dQUIET",
         "-dBATCH",
+        # Pakt ook fonts en dubbele objecten aan i.p.v. alleen afbeeldingen te
+        # downsamplen. Bij "professionele" PDF's (veel tekst/vectoren/ingesloten
+        # fonts) zit de winst vaak hier, niet in de rasterafbeeldingen.
+        "-dCompressFonts=true",
+        "-dSubsetFonts=true",
+        "-dDetectDuplicateImages=true",
+        "-dCompressPages=true",
     ]
     cmd.extend(QUALITY_ARGS.get(quality, []))
     cmd.extend([f"-sOutputFile={out_path}", in_path])
     subprocess.run(cmd, check=True)
+
+
+def run_qpdf_optimize(in_path, out_path):
+    """Extra nabewerking bovenop Ghostscript: herschrijft de PDF-structuur
+    met object streams, wat vaak nog 5-15% extra bespaart bovenop wat
+    Ghostscript alleen doet. Faalt qpdf (niet geïnstalleerd, corrupt bestand,
+    etc.) dan gebruiken we gewoon het Ghostscript-resultaat."""
+    cmd = [
+        "qpdf",
+        "--object-streams=generate",
+        "--compression-level=9",
+        "--recompress-flate",
+        in_path,
+        out_path,
+    ]
+    subprocess.run(cmd, check=True, timeout=60)
 
 
 @app.route('/compress_single', methods=['POST'])
@@ -115,6 +138,19 @@ def compress_single():
             size = os.path.getsize(out_path)
             if best_size is None or size < best_size:
                 best_path, best_size = out_path, size
+
+            # Extra qpdf-pass bovenop het Ghostscript-resultaat. Dit kan
+            # falen (qpdf niet aanwezig, edge-case in het bestand) - dan
+            # gaan we gewoon door met het Ghostscript-resultaat hierboven.
+            qpdf_out_path = os.path.join(temp_dir, f"qpdf_{step}_{safe_name}")
+            try:
+                run_qpdf_optimize(out_path, qpdf_out_path)
+                qpdf_size = os.path.getsize(qpdf_out_path)
+                if qpdf_size < best_size:
+                    best_path, best_size = qpdf_out_path, qpdf_size
+                    size = qpdf_size
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+                print(f"qpdf optimalisatie overgeslagen: {e}")
 
             # Stop zodra we onder de gewenste max. grootte zitten, of als er
             # geen max. grootte is ingesteld (dan is de eerste poging genoeg).
