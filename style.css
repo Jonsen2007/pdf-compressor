@@ -73,6 +73,12 @@ body {
     justify-content: center;
 }
 
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .theme-btn:hover {
     color: var(--primary);
 }
@@ -405,6 +411,23 @@ input[type="file"] { display: none; }
 }
 
 .btn-action:hover { background: var(--primary-hover); }
+
+.btn-cancel {
+    width: 100%;
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.btn-cancel:hover {
+    background: var(--danger);
+    color: white;
+}
 
 .summary-box {
     margin-top: 20px;

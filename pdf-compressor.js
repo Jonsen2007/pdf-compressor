@@ -1,10 +1,12 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const themeToggle = document.getElementById('themeToggle');
+const homeBtn = document.getElementById('homeBtn');
 const fileInput = document.getElementById('fileInput');
 const selectBtn = document.getElementById('selectBtn');
 const addMoreBtn = document.getElementById('addMoreBtn');
 const uploadBtn = document.getElementById('uploadBtn');
+const cancelBtn = document.getElementById('cancelBtn');
 const zipBtn = document.getElementById('zipBtn');
 
 const uploadScreen = document.getElementById('uploadScreen');
@@ -22,6 +24,27 @@ let selectedFiles = [];
 let processedFiles = [];
 let lastTotalOrig = 0;
 let lastTotalNew = 0;
+let currentAbortController = null;
+
+function resetToHome() {
+    // Breek eventuele lopende compressie af voordat we alles wissen.
+    if (currentAbortController) {
+        currentAbortController.abort();
+        currentAbortController = null;
+    }
+    selectedFiles = [];
+    processedFiles = [];
+    lastTotalOrig = 0;
+    lastTotalNew = 0;
+    resultsSummary.style.display = 'none';
+    zipBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+    uploadBtn.disabled = false;
+    workspaceScreen.style.display = 'none';
+    uploadScreen.style.display = 'flex';
+}
+
+if (homeBtn) homeBtn.addEventListener('click', resetToHome);
 
 const savedTheme = localStorage.getItem('theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -184,6 +207,16 @@ document.querySelectorAll('.option-card').forEach(card => {
     });
 });
 
+if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+        if (currentAbortController) {
+            currentAbortController.abort();
+        }
+        cancelBtn.style.display = 'none';
+        uploadBtn.disabled = false;
+    });
+}
+
 if (uploadBtn) {
     uploadBtn.addEventListener('click', processFiles);
 }
@@ -196,9 +229,13 @@ async function processFiles() {
     const maxTargetMB = document.getElementById('maxTargetMB') ? document.getElementById('maxTargetMB').value : 10;
 
     uploadBtn.disabled = true;
+    cancelBtn.style.display = 'block';
     resultsSummary.style.display = 'none';
     zipBtn.style.display = 'none';
     processedFiles = [];
+
+    const abortController = new AbortController();
+    currentAbortController = abortController;
 
     let totalOrig = 0;
     let totalNew = 0;
@@ -228,7 +265,8 @@ async function processFiles() {
             // AANGEPAST: Relatieve URL zodat het via de cloud goed werkt
             const response = await fetch('/compress_single', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                signal: abortController.signal,
             });
 
             if (!response.ok) throw new Error(`Server status: ${response.status}`);
@@ -249,6 +287,14 @@ async function processFiles() {
             renderCardDownload(i, blob, file.name);
 
         } catch (err) {
+            if (err.name === 'AbortError') {
+                if (sizeText) {
+                    sizeText.innerText = 'Geannuleerd';
+                    sizeText.style.color = 'var(--text-muted)';
+                }
+                if (progressFill) progressFill.style.width = '0%';
+                return;
+            }
             console.error('Compressiefout:', err);
             if (sizeText) {
                 sizeText.innerText = 'Verbinding mislukt';
@@ -267,6 +313,7 @@ async function processFiles() {
 
     async function worker() {
         while (nextIndex < selectedFiles.length) {
+            if (abortController.signal.aborted) return;
             const i = nextIndex;
             nextIndex += 1;
             await compressOne(i);
@@ -279,6 +326,8 @@ async function processFiles() {
     );
     await Promise.all(workers);
 
+    cancelBtn.style.display = 'none';
+    currentAbortController = null;
     uploadBtn.disabled = false;
 
     if (processedFiles.length > 0) {
