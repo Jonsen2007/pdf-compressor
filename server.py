@@ -26,20 +26,20 @@ QUALITY_ARGS = {
     ],
     "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=105",  # Verhoogd van 88 naar 110 voor betere scherpte
+        "-dColorImageResolution=100",  # Verhoogd van 88 naar 110 voor betere scherpte
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=105",
+        "-dGrayImageResolution=100",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=true", # Veranderd van false naar true voor slimme filterkeuze
         "-dJPEGQ=70",                  # Verhoogd van 60 naar 70 tegen JPEG-ruis
     ],
     "/printer": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=140",  
+        "-dColorImageResolution=125",  
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=140",
+        "-dGrayImageResolution=125",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
