@@ -48,6 +48,31 @@ def _target_pixels_for_image(page, xref, target_dpi, fallback_max_dim):
 
     return fallback_max_dim, fallback_max_dim
 
+def _strip_bloat(doc):
+    """Verwijdert opmaakprogramma-specifieke 'privé'-data die niets met het
+    zichtbare document te maken heeft, maar in de praktijk het grootste deel
+    van het bestand kan zijn.
+
+    Concreet voorbeeld: PDF's geëxporteerd door Adobe InDesign bevatten vaak
+    een /PieceInfo -> /Private object waarin InDesign eigen re-editeerbare
+    data bewaart (soms tientallen MB's, voor een document dat er zichtbaar
+    maar een paar honderd KB uitziet). Dat heeft niks te maken met
+    afbeeldingen of lettertypes, dus de reguliere compressiestappen konden
+    dit nooit oplossen. We knippen de referentie weg zodat de garbage
+    collection in doc.save() de nu-onbereikbare data definitief verwijdert.
+    We laten ook de losse print-thumbnails per pagina vallen (/Thumb) -
+    viewers genereren gewoon een eigen voorbeeld, dus dat kost niets.
+    """
+    for xref in range(1, doc.xref_length()):
+        try:
+            keys = doc.xref_get_keys(xref)
+        except Exception:
+            continue
+        if "PieceInfo" in keys:
+            doc.xref_set_key(xref, "PieceInfo", "null")
+        if "Thumb" in keys:
+            doc.xref_set_key(xref, "Thumb", "null")
+
 def compress_pdf_smart(in_path, out_path, quality_preset):
     """Haalt afbeeldingen uit de PDF, verkleint ze op basis van hun werkelijke
     weergavegrootte (DPI-gebaseerd, net als professionele PDF-compressors) en
@@ -59,6 +84,7 @@ def compress_pdf_smart(in_path, out_path, quality_preset):
     jpg_quality = params["quality"]
 
     doc = fitz.open(in_path)
+    _strip_bloat(doc)
     processed_xrefs = set()
 
     for page in doc:
