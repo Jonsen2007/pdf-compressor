@@ -15,25 +15,25 @@ GHOSTSCRIPT_CMD = "gs"
 QUALITY_ARGS = {
 "/screen": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=50",  
+        "-dColorImageResolution=72",  # Terug naar de veilige bodem van 72 DPI
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=50",   
+        "-dGrayImageResolution=72",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=25", 
+        "-dJPEGQ=35",                 # Net iets boven de zware artefact-grens
     ],
-"/ebook": [
+    "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=85",  
+        "-dColorImageResolution=100", # Genoeg detail om grafieken te kunnen lezen
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=85",   
+        "-dGrayImageResolution=100",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=45", 
+        "-dJPEGQ=60",                 # Zorgt dat de tekst in plaatjes niet gaat 'bloeden'
     ],
     "/printer": [
         "-dDownsampleColorImages=true",
