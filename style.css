@@ -54,6 +54,10 @@ body {
     flex-shrink: 0;
 }
 
+.brand {
+    cursor: pointer;
+}
+
 .brand-name {
     font-size: 1.05rem;
     font-weight: 700;
@@ -81,6 +85,14 @@ body {
 
 .theme-btn:hover {
     color: var(--primary);
+}
+
+.lang-btn {
+    width: auto;
+    padding: 0 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
 .app-container {

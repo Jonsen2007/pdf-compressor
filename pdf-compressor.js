@@ -2,6 +2,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 const themeToggle = document.getElementById('themeToggle');
 const homeBtn = document.getElementById('homeBtn');
+const langToggle = document.getElementById('langToggle');
+const brandHome = document.getElementById('brandHome');
 const fileInput = document.getElementById('fileInput');
 const selectBtn = document.getElementById('selectBtn');
 const addMoreBtn = document.getElementById('addMoreBtn');
@@ -46,8 +48,153 @@ function resetToHome() {
 
 if (homeBtn) homeBtn.addEventListener('click', resetToHome);
 
+if (brandHome) {
+    brandHome.addEventListener('click', resetToHome);
+    // Toetsenbordtoegankelijkheid: ook bruikbaar via Enter/Spatie, niet
+    // alleen met de muis, omdat dit een <div role="button"> is.
+    brandHome.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            resetToHome();
+        }
+    });
+}
+
+if (langToggle) {
+    langToggle.addEventListener('click', () => {
+        applyLanguage(currentLang === 'nl' ? 'en' : 'nl');
+    });
+}
+
+applyLanguage(currentLang);
+
 const savedTheme = localStorage.getItem('theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
+
+// ============================================
+// VERTALINGEN (NL / EN)
+// ============================================
+const translations = {
+    nl: {
+        title: "PDF Compressor",
+        homeTitle: "Terug naar start",
+        themeTitle: "Schakel thema",
+        langTitle: "Switch to English",
+        heroTitle: "Comprimeer PDF bestanden",
+        heroSubtitle: "Verklein de bestandsgrootte van je documenten in seconden.",
+        dropzoneTitle: "Sleep je PDF-bestanden hierheen",
+        dropzoneSubtext: "of klik om te bladeren",
+        selectBtn: "Kies bestanden",
+        filesHeading: "Bestanden",
+        addMoreBtn: "+ Toevoegen",
+        resultOriginal: "Origineel",
+        resultNew: "Nieuw",
+        resultSavings: "Besparing",
+        zipBtn: "📦 Download Alles als ZIP",
+        compressionPanelTitle: "Compressie",
+        qualityMaxTitle: "Maximale compressie",
+        qualityMaxDesc: "Laagste bestandsgrootte",
+        qualityRecTitle: "Aanbevolen",
+        qualityRecDesc: "Goede balans tussen kwaliteit en grootte",
+        qualityHighTitle: "Hoge kwaliteit",
+        qualityHighDesc: "Minimale compressie",
+        optionsPanelTitle: "Opties",
+        maxTargetLabel: "Gewenste max. grootte (MB)",
+        unitLabel: "Eenheid weergave",
+        unitAuto: "Automatisch (KB / MB)",
+        unitKB: "Altijd KB",
+        unitMB: "Altijd MB",
+        startBtn: "Start Compressie",
+        cancelBtn: "Annuleren",
+        compressingText: "Comprimeren...",
+        cancelledText: "Geannuleerd",
+        connectionFailedText: "Verbinding mislukt",
+        downloadBtn: "⬇ Download",
+        downloadPrefix: "gecomprimeerd_",
+        zipFileName: "gecomprimeerd_bestanden.zip",
+        zipLibMissing: "ZIP bibliotheek niet geladen",
+        nonPdfSingle: (name) => `"${name}" is geen PDF-bestand en is overgeslagen.`,
+        nonPdfMultiple: (count, names) => `${count} bestanden zijn overgeslagen omdat ze geen PDF zijn: ${names}`,
+        compressError: (name, msg) => `${name}: ${msg}`,
+        genericCompressError: "compressie mislukt",
+    },
+    en: {
+        title: "PDF Compressor",
+        homeTitle: "Back to start",
+        themeTitle: "Toggle theme",
+        langTitle: "Wissel naar Nederlands",
+        heroTitle: "Compress PDF files",
+        heroSubtitle: "Reduce your documents' file size in seconds.",
+        dropzoneTitle: "Drag your PDF files here",
+        dropzoneSubtext: "or click to browse",
+        selectBtn: "Choose files",
+        filesHeading: "Files",
+        addMoreBtn: "+ Add more",
+        resultOriginal: "Original",
+        resultNew: "New",
+        resultSavings: "Savings",
+        zipBtn: "📦 Download All as ZIP",
+        compressionPanelTitle: "Compression",
+        qualityMaxTitle: "Maximum compression",
+        qualityMaxDesc: "Smallest file size",
+        qualityRecTitle: "Recommended",
+        qualityRecDesc: "Good balance between quality and size",
+        qualityHighTitle: "High quality",
+        qualityHighDesc: "Minimal compression",
+        optionsPanelTitle: "Options",
+        maxTargetLabel: "Desired max. size (MB)",
+        unitLabel: "Display unit",
+        unitAuto: "Automatic (KB / MB)",
+        unitKB: "Always KB",
+        unitMB: "Always MB",
+        startBtn: "Start Compression",
+        cancelBtn: "Cancel",
+        compressingText: "Compressing...",
+        cancelledText: "Cancelled",
+        connectionFailedText: "Connection failed",
+        downloadBtn: "⬇ Download",
+        downloadPrefix: "compressed_",
+        zipFileName: "compressed_files.zip",
+        zipLibMissing: "ZIP library not loaded",
+        nonPdfSingle: (name) => `"${name}" is not a PDF file and was skipped.`,
+        nonPdfMultiple: (count, names) => `${count} files were skipped because they are not PDFs: ${names}`,
+        compressError: (name, msg) => `${name}: ${msg}`,
+        genericCompressError: "compression failed",
+    },
+};
+
+let currentLang = localStorage.getItem('language')
+    || (navigator.language && navigator.language.toLowerCase().startsWith('en') ? 'en' : 'nl');
+
+// Haalt een vertaalde string op voor de huidige taal. Ondersteunt zowel
+// platte strings (t('startBtn')) als functies met argumenten
+// (t('compressError', filename, message)).
+function t(key, ...args) {
+    const entry = translations[currentLang][key];
+    return typeof entry === 'function' ? entry(...args) : entry;
+}
+
+function applyLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('language', lang);
+    document.documentElement.setAttribute('lang', lang);
+    document.title = t('title');
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        el.setAttribute('title', t(el.getAttribute('data-i18n-title')));
+    });
+
+    if (langToggle) langToggle.innerText = lang === 'nl' ? 'EN' : 'NL';
+
+    // Ververs eventuele al zichtbare bestandsgroottes/downloadknoppen zodat
+    // ook die meteen in de nieuwe taal staan.
+    if (typeof refreshSizeDisplays === 'function' && selectedFiles.length > 0) {
+        refreshSizeDisplays();
+    }
+}
 
 const toastContainer = document.getElementById('toastContainer');
 
@@ -113,8 +260,8 @@ function handleFiles(files) {
     if (rejected.length) {
         const names = rejected.map(f => f.name).join(', ');
         const message = rejected.length === 1
-            ? `"${names}" is geen PDF-bestand en is overgeslagen.`
-            : `${rejected.length} bestanden zijn overgeslagen omdat ze geen PDF zijn: ${names}`;
+            ? t('nonPdfSingle', names)
+            : t('nonPdfMultiple', rejected.length, names);
         showToast(message);
     }
 
@@ -282,7 +429,7 @@ async function processFiles() {
 
         if (sizeText) {
             sizeText.style.color = 'var(--text)';
-            sizeText.innerText = 'Comprimeren...';
+            sizeText.innerText = t('compressingText');
         }
         if (progressFill) progressFill.style.width = '50%';
 
@@ -322,16 +469,16 @@ async function processFiles() {
         } catch (err) {
             if (err.name === 'AbortError') {
                 if (sizeText) {
-                    sizeText.innerText = 'Geannuleerd';
+                    sizeText.innerText = t('cancelledText');
                     sizeText.style.color = 'var(--text-muted)';
                 }
                 if (progressFill) progressFill.style.width = '0%';
                 return;
             }
             console.error('Compressiefout:', err);
-            showToast(`${file.name}: ${err.message || 'compressie mislukt'}`);
+            showToast(t('compressError', file.name, err.message || t('genericCompressError')));
             if (sizeText) {
-                sizeText.innerText = 'Verbinding mislukt';
+                sizeText.innerText = t('connectionFailedText');
                 sizeText.style.color = 'var(--danger)';
             }
             if (progressFill) progressFill.style.width = '0%';
@@ -382,8 +529,8 @@ function renderCardDownload(index, blob, originalName) {
     const link = document.createElement('a');
     link.className = 'download-btn';
     link.href = url;
-    link.download = `gecomprimeerd_${originalName}`;
-    link.innerText = '⬇ Download';
+    link.download = `${t('downloadPrefix')}${originalName}`;
+    link.innerText = t('downloadBtn');
     target.appendChild(link);
 }
 
@@ -402,18 +549,18 @@ function showSummary(origBytes, newBytes) {
 if (zipBtn) {
     zipBtn.addEventListener('click', async () => {
         if (typeof JSZip === 'undefined') {
-            alert('ZIP bibliotheek niet geladen');
+            alert(t('zipLibMissing'));
             return;
         }
         const zip = new JSZip();
         processedFiles.forEach(item => {
-            if (item) zip.file(`gecomprimeerd_${item.name}`, item.blob);
+            if (item) zip.file(`${t('downloadPrefix')}${item.name}`, item.blob);
         });
 
         const zipContent = await zip.generateAsync({ type: 'blob' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(zipContent);
-        link.download = 'gecomprimeerd_bestanden.zip';
+        link.download = t('zipFileName');
         link.click();
     });
 }
