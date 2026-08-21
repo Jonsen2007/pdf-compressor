@@ -26,10 +26,10 @@ QUALITY_ARGS = {
     ],
     "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=100", # Genoeg detail om grafieken te kunnen lezen
+        "-dColorImageResolution=85", # Genoeg detail om grafieken te kunnen lezen
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=100",
+        "-dGrayImageResolution=85",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
@@ -37,10 +37,10 @@ QUALITY_ARGS = {
     ],
     "/printer": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=300",
+        "-dColorImageResolution=250",
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=300",
+        "-dGrayImageResolution=250",
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
