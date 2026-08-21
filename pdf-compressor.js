@@ -49,6 +49,26 @@ if (homeBtn) homeBtn.addEventListener('click', resetToHome);
 const savedTheme = localStorage.getItem('theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 
+const toastContainer = document.getElementById('toastContainer');
+
+function showToast(message, duration = 4000) {
+    if (!toastContainer) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<span class="toast-icon">⚠</span><span>${message}</span>`;
+    toastContainer.appendChild(toast);
+
+    // Klein beetje uitstel zodat de transition (opacity/transform) ook echt
+    // afspeelt in plaats van meteen in de eindstaat te verschijnen.
+    requestAnimationFrame(() => toast.classList.add('show'));
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+    }, duration);
+}
+
 if (themeToggle) {
     themeToggle.addEventListener('click', () => {
         const html = document.documentElement;
@@ -88,6 +108,16 @@ if (fileInput) {
 
 function handleFiles(files) {
     const validPdfs = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
+    const rejected = files.filter(f => !f.name.toLowerCase().endsWith('.pdf'));
+
+    if (rejected.length) {
+        const names = rejected.map(f => f.name).join(', ');
+        const message = rejected.length === 1
+            ? `"${names}" is geen PDF-bestand en is overgeslagen.`
+            : `${rejected.length} bestanden zijn overgeslagen omdat ze geen PDF zijn: ${names}`;
+        showToast(message);
+    }
+
     if (!validPdfs.length) return;
 
     selectedFiles = [...selectedFiles, ...validPdfs];
@@ -269,7 +299,10 @@ async function processFiles() {
                 signal: abortController.signal,
             });
 
-            if (!response.ok) throw new Error(`Server status: ${response.status}`);
+            if (!response.ok) {
+                const errorText = await response.text().catch(() => '');
+                throw new Error(errorText || `Server status: ${response.status}`);
+            }
 
             const blob = await response.blob();
             totalNew += blob.size;
@@ -296,6 +329,7 @@ async function processFiles() {
                 return;
             }
             console.error('Compressiefout:', err);
+            showToast(`${file.name}: ${err.message || 'compressie mislukt'}`);
             if (sizeText) {
                 sizeText.innerText = 'Verbinding mislukt';
                 sizeText.style.color = 'var(--danger)';
