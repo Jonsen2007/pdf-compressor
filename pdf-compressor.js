@@ -54,7 +54,6 @@ const translations = {
         qHighTitle: 'Hoge kwaliteit',
         qHighDesc: 'Minimale compressie',
         panelOptions: 'Opties',
-        maxSizeLabel: 'Gewenste max. grootte (MB)',
         unitLabel: 'Eenheid weergave',
         unitAuto: 'Automatisch (KB / MB)',
         unitKB: 'Altijd KB',
@@ -96,7 +95,6 @@ const translations = {
         qHighTitle: 'High quality',
         qHighDesc: 'Minimal compression',
         panelOptions: 'Options',
-        maxSizeLabel: 'Desired max. size (MB)',
         unitLabel: 'Display unit',
         unitAuto: 'Automatic (KB / MB)',
         unitKB: 'Always KB',
@@ -132,14 +130,13 @@ function applyLanguage(lang) {
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        el.innerText = t(key);
+        if (key && el) el.innerText = t(key);
     });
     document.querySelectorAll('[data-i18n-title]').forEach(el => {
         const key = el.getAttribute('data-i18n-title');
-        el.setAttribute('title', t(key));
+        if (key && el) el.setAttribute('title', t(key));
     });
 
-    // Herteken de al zichtbare grootte-teksten (bv. "Comprimeren...") in de nieuwe taal
     if (typeof refreshSizeDisplays === 'function' && selectedFiles.length > 0) {
         refreshSizeDisplays();
     }
@@ -154,7 +151,6 @@ if (langToggle) {
 
 applyLanguage(currentLang);
 
-// --- TOAST MELDINGEN ---
 let toastTimeout = null;
 function showToast(message) {
     if (!toastEl) return;
@@ -166,7 +162,6 @@ function showToast(message) {
     }, 4000);
 }
 
-// De merknaam linksboven werkt nu ook als home-knop
 if (brandHomeBtn) {
     brandHomeBtn.addEventListener('click', resetToHome);
     brandHomeBtn.addEventListener('keydown', (e) => {
@@ -178,7 +173,6 @@ if (brandHomeBtn) {
 }
 
 function resetToHome() {
-    // Breek eventuele lopende compressie af voordat we alles wissen.
     if (currentAbortController) {
         currentAbortController.abort();
         currentAbortController = null;
@@ -247,9 +241,6 @@ function handleFiles(files) {
     }
 
     if (!validPdfs.length) {
-        if (!invalidFiles.length) return;
-        if (!files.length) return;
-        // Alleen ongeldige bestanden geselecteerd: er is al een melding getoond hierboven.
         return;
     }
 
@@ -281,10 +272,6 @@ function formatBytes(bytes) {
 
 if (unitSelect) {
     unitSelect.addEventListener('change', () => {
-        // BUGFIX: dit riep voorheen renderWorkspace() aan, wat de hele grid
-        // (incl. thumbnails, voortgang en downloadknoppen) opnieuw opbouwde
-        // en zo alle al gecomprimeerde resultaten wiste. Nu wordt alleen
-        // de weergegeven tekst bijgewerkt.
         if (selectedFiles.length > 0) refreshSizeDisplays();
     });
 }
@@ -389,7 +376,6 @@ async function processFiles() {
 
     const selectedRadio = document.querySelector('input[name="quality"]:checked');
     const quality = selectedRadio ? selectedRadio.value : '/ebook';
-    const maxTargetMB = document.getElementById('maxTargetMB') ? document.getElementById('maxTargetMB').value : 10;
 
     uploadBtn.disabled = true;
     cancelBtn.style.display = 'block';
@@ -403,9 +389,6 @@ async function processFiles() {
     let totalOrig = 0;
     let totalNew = 0;
 
-    // Comprimeer één bestand; wordt hieronder met een concurrency-limiet
-    // aangeroepen zodat bestanden niet meer op elkaar hoeven te wachten
-    // (voorheen: sequentiële for-loop met await per bestand).
     async function compressOne(i) {
         const file = selectedFiles[i];
         totalOrig += file.size;
@@ -422,10 +405,8 @@ async function processFiles() {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('quality', quality);
-        formData.append('max_target_mb', maxTargetMB);
 
         try {
-            // AANGEPAST: Relatieve URL zodat het via de cloud goed werkt
             const response = await fetch('/compress_single', {
                 method: 'POST',
                 body: formData,
@@ -436,10 +417,7 @@ async function processFiles() {
 
             const blob = await response.blob();
             totalNew += blob.size;
-            // BUGFIX: bewaar op dezelfde index als selectedFiles i.p.v. altijd
-            // te pushen. Anders schuiven de resultaten op zodra één bestand
-            // mislukt, en komen latere downloads/groottes niet meer overeen
-            // met de juiste kaart.
+            
             processedFiles[i] = { name: file.name, blob: blob };
 
             if (progressFill) progressFill.style.width = '100%';
@@ -467,11 +445,7 @@ async function processFiles() {
         }
     }
 
-    // Max. aantal gelijktijdige uploads. Hoger dan 1 (voorheen effectief de
-    // situatie door de sequentiële loop), maar begrensd zodat de server
-    // (en de eigen internetverbinding van de gebruiker) niet overspoeld
-    // wordt bij bijv. 20 bestanden tegelijk.
-    const CONCURRENCY_LIMIT = 3;
+    const CONCURRENCY_LIMIT = 1;
     let nextIndex = 0;
 
     async function worker() {
