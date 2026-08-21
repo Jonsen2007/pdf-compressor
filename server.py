@@ -26,16 +26,26 @@ QUALITY_ARGS = {
     ],
     "/ebook": [
         "-dDownsampleColorImages=true",
-        "-dColorImageResolution=150",
+        "-dColorImageResolution=120", 
         "-dColorImageDownsampleType=/Bicubic",
         "-dDownsampleGrayImages=true",
-        "-dGrayImageResolution=150",
+        "-dGrayImageResolution=120", 
         "-dGrayImageDownsampleType=/Bicubic",
         "-dAutoFilterColorImages=false",
         "-dColorImageFilter=/DCTEncode",
-        "-dJPEGQ=75",
+        "-dJPEGQ=60", 
     ],
-    "/printer": [],
+    "/printer": [
+        "-dDownsampleColorImages=true",
+        "-dColorImageResolution=300",
+        "-dColorImageDownsampleType=/Bicubic",
+        "-dDownsampleGrayImages=true",
+        "-dGrayImageResolution=300",
+        "-dGrayImageDownsampleType=/Bicubic",
+        "-dAutoFilterColorImages=false",
+        "-dColorImageFilter=/DCTEncode",
+        "-dJPEGQ=85",
+    ],
 }
 
 @app.route('/')
